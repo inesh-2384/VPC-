@@ -120,9 +120,5 @@ The web application is successfully accessible through the EC2 Public IPv4 DNS.
 <img width="1919" height="868" alt="image" src="https://github.com/user-attachments/assets/f9c2b507-288b-4e81-8d4b-0b6941fce146" />
 
 ## RESULT
-
 Thus, a private cloud environment was successfully deployed and configured in AWS using Amazon VPC, with public and private subnets, routing, security controls, NAT connectivity, and an EC2-based web server.
 
-
-## Result:
-Thus, a private cloud on AWS involves using VPCs has been created for a dedicated, isolated network where we can manage our resources and control access according to our requirements.
