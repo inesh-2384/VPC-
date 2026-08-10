@@ -3,104 +3,125 @@
 ## REG NUMBER: 212223220036
 ## NAME: INESH N
 
-## Aim:
-To set up of a Private Cloud in AWS.
+## AIM
 
-## Setting up of a private cloud in AWS:
-Setting up a private cloud within AWS, also known as a Virtual Private Cloud (VPC), involves creating a logically isolated virtual network that you can use to launch AWS resources. This provides you with full control over your virtual networking environment, including resource placement, connectivity, and security. Amazon Virtual Private Cloud (Amazon VPC) gives you full control over your virtual networking environment, including resource placement, connectivity, and security. Get started by setting up your VPC in the AWS service console. Next, add resources to it such as Amazon Elastic Compute Cloud (EC2) and Amazon Relational Database Service (RDS) instances. Finally, define how your VPCs communicate with each other across accounts, Availability Zones, or AWS Regions.
+To deploy and configure a private cloud environment in AWS using Amazon VPC, including public and private subnets, route tables, Internet Gateway, NAT Gateway, security group, and an EC2 web server.
 
-## Procedure:
+## ALGORITHM
 
-### Plan Your VPC:
-● Determine your needs:
+1. Open the AWS Management Console and select **VPC**.
+2. Create a VPC using **VPC and more**.
+3. Configure public and private subnets with appropriate CIDR blocks.
+4. Configure an Internet Gateway and NAT Gateway.
+5. Create additional public and private subnets in a second Availability Zone.
+6. Configure public and private route tables.
+7. Create a security group allowing HTTP traffic.
+8. Launch an EC2 instance in the public subnet.
+9. Configure the EC2 instance with Amazon Linux and the required User Data script.
+10. Verify the web server using its Public IPv4 DNS.
 
-### Define your use case, including application requirements, security needs, and compliance standards.
+## PROCEDURE
 
-● Plan IP address ranges:
+### 1. Create VPC
 
-### Choose appropriate IP address ranges for your VPC and subnets to avoid conflicts.
+Create a VPC with the following configuration:
 
-● Select Availability Zones:
+| Setting | Value |
+|---|---|
+| VPC | `lab-vpc` |
+| IPv4 CIDR | `10.0.0.0/16` |
+| Availability Zones | 1 |
+| Public Subnet | `10.0.0.0/24` |
+| Private Subnet | `10.0.1.0/24` |
+| NAT Gateway | In 1 AZ |
+| VPC Endpoints | None |
 
-### Decide which Availability Zones (AZs) you'll use for your resources, considering redundancy and performance.
+The VPC automatically creates an Internet Gateway and route tables.
 
-● Plan internet connectivity:
+### 2. Create Additional Subnets
 
-### Determine if you need public internet access and how to configure it.
+Create the following subnets in the second Availability Zone:
 
-● Define security:
+| Subnet | CIDR |
+|---|---|
+| `lab-subnet-public2` | `10.0.2.0/24` |
+| `lab-subnet-private2` | `10.0.3.0/24` |
 
-### Plan your security groups, network ACLs, and access controls to ensure a secure environment.
+Associate the public subnets with the public route table and the private subnets with the private route table.
 
-### Create Your VPC:
-• Sign in to AWS Management Console: Access the VPC console and navigate to the VPC dashboard.
+### 3. Create Security Group
 
-• Choose "Create VPC": Initiate the VPC creation process.
+Create a security group:
 
-• Configure VPC details: Enter the VPC name, CIDR block, Availability Zones, and other necessary settings.
+| Setting | Value |
+|---|---|
+| Name | `Web Security Group` |
+| Description | `Enable HTTP access` |
+| VPC | `lab-vpc` |
+| Inbound Type | HTTP |
+| Source | Anywhere-IPv4 |
 
-• Create subnets: Define subnets within your VPC to isolate different parts of your network.
+### 4. Launch EC2 Web Server
 
-• Create route tables: Specify how traffic is routed within and outside the VPC.
+Configure the EC2 instance:
 
-• Create security groups: Define access control rules for your resources.
+| Setting | Value |
+|---|---|
+| Name | `Web Server 1` |
+| AMI | Amazon Linux 2023 |
+| Instance Type | `t2.micro` |
+| Key Pair | `vockey` |
+| VPC | `lab-vpc` |
+| Subnet | `lab-subnet-public2` |
+| Public IP | Enabled |
+| Security Group | `Web Security Group` |
 
-### Deploying Resources:
-• Launch EC2 instances: Create and launch virtual machines within your VPC.
+Use the following User Data:
 
-• Set up RDS instances: Deploy databases for your applications.
-
-• Configure networking: Connect your resources to the appropriate subnets, security groups, and route tables.
-
-• Deploy other AWS services: Integrate other services like S3 for storage and Lambda for serverless computing.
-
-### Managing and Monitoring:
-
-• Use AWS CloudWatch: Monitor your VPC and resources for performance and health.
-
-• Configure logging and auditing: Track access and activity within your VPC for security and compliance.
-
-• Implement security best practices: Regularly review and update your security configuration.
-
-• Scale and adjust as needed: Adjust your VPC infrastructure to meet changing demands.
-
-## Output:
-
-### Snapshot 1: Create VPC image
-
-![op1](https://github.com/user-attachments/assets/f1bbe800-eb49-4fc4-a8b4-0b2c45b87da4)
-
-
-### Snapshot 2: Configuring Subnets
-![op2](https://github.com/user-attachments/assets/5c4d49dd-503e-44b7-8c00-783c7d7c9b16)
-
-### Snapshot 3: Configure Subnets
-![op3](https://github.com/user-attachments/assets/2dd70a6f-21c0-4390-9569-546792f76a81)
-
-### Snapshot 4: Setting Internet gateway
-![op4](https://github.com/user-attachments/assets/9531c864-6e80-40aa-91df-104d2a5724cc)
-
-### Snapshot 5: Creating Internet gateway
-![op5](https://github.com/user-attachments/assets/88a01fd1-add8-4f6e-a018-32d0d34edfcc)
-
-### Snapshot 6: Setting Internet gateway
-![op6](https://github.com/user-attachments/assets/b857ff77-0d91-4558-8327-c53a2887dce8)
-
-### Snapshot 7: Creating route table
-
-![op7](https://github.com/user-attachments/assets/5d9b8973-6962-465b-94e0-4ad0bc7f5db6)
-
-
-### Snapshot 8: Configuring route table
-![op8](https://github.com/user-attachments/assets/b70e1607-37e5-481a-92f2-543177903903)
-
-### Snapshot 9: Editing routes
-
-![op9](https://github.com/user-attachments/assets/fc6a6898-19bc-443f-93d7-369c9521ab1c)
+```bash
+#!/bin/bash
+dnf install -y httpd wget php mariadb105-server
+wget https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-100-ACCLFO-2/2-lab2-vpc/s3/lab-app.zip
+unzip lab-app.zip -d /var/www/html/
+chkconfig httpd on
+service httpd start
+```
+### 5. Launch the instance and wait until 2/2 status checks passed.
+### 6. Copy the Public IPv4 DNS.
+### 7. Open it in a browser to verify the web server.
 
 
-### Snapshot 10: Creating route table
-![op10](https://github.com/user-attachments/assets/75e0f1e3-cf04-45b5-a554-ee807f00c668)
+## OUTPUT
+
+The VPC, public and private subnets, Internet Gateway, NAT Gateway, route tables, security group, and EC2 web server are successfully created.
+
+### Snapshot 1: Create Your VPC
+<img width="1919" height="875" alt="image" src="https://github.com/user-attachments/assets/ddb287c4-653c-4eea-8cfc-bdc2a84f406f" />
+<img width="1919" height="865" alt="image" src="https://github.com/user-attachments/assets/3a2e4ac6-df98-4716-8907-c0244daa8316" />
+
+### Snapshot 2: Create Additional Subnets
+<img width="1919" height="862" alt="image" src="https://github.com/user-attachments/assets/40fdda28-ffcc-4e6c-94e6-7f9e26719253" />
+<img width="1919" height="872" alt="image" src="https://github.com/user-attachments/assets/402cd4b2-6629-4b6f-b012-0fb21c023b30" />
+<img width="1919" height="868" alt="image" src="https://github.com/user-attachments/assets/3f29fc78-ae90-4fe5-a63e-30577e26a054" />
+<img width="1919" height="879" alt="image" src="https://github.com/user-attachments/assets/a9692da4-230f-4f06-a6bc-966a912c5085" />
+
+### Snapshot 3: Create Additional Subnets
+<img width="1919" height="874" alt="image" src="https://github.com/user-attachments/assets/d105c998-d756-4133-b7f2-0c78a1c70780" />
+<img width="1919" height="859" alt="image" src="https://github.com/user-attachments/assets/d3be6b66-da2f-4ef2-b84b-c200d22e132d" />
+<img width="1919" height="872" alt="image" src="https://github.com/user-attachments/assets/78b4a66a-c3f5-4ac0-bbe4-8476ab154d11" />
+
+### Snapshot 4: Launch a Web Server Instance
+<img width="1917" height="878" alt="image" src="https://github.com/user-attachments/assets/1f3d4992-a1b1-4f22-a03c-f26bb1ba0dbf" />
+<img width="1919" height="860" alt="image" src="https://github.com/user-attachments/assets/70ce7f1e-27b3-4169-8619-acaf0b9f4521" />
+<img width="1919" height="872" alt="image" src="https://github.com/user-attachments/assets/eab7a9b1-279e-41e8-9a70-6281fc7d11fc" />
+<img width="1919" height="871" alt="image" src="https://github.com/user-attachments/assets/d2842579-721b-4254-bd8b-6e4b3ba36405" />
+
+The web application is successfully accessible through the EC2 Public IPv4 DNS.
+<img width="1919" height="868" alt="image" src="https://github.com/user-attachments/assets/f9c2b507-288b-4e81-8d4b-0b6941fce146" />
+
+## RESULT
+
+Thus, a private cloud environment was successfully deployed and configured in AWS using Amazon VPC, with public and private subnets, routing, security controls, NAT connectivity, and an EC2-based web server.
 
 
 ## Result:
